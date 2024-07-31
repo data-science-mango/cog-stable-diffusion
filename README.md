@@ -10,4 +10,13 @@ First, download the pre-trained weights:
 
 Then, you can run predictions:
 
-    cog predict -i prompt="monkey scuba diving"
+    cog predict r8.im/data-science-mango/text-genai-sbxl-finte-tuned:latest \
+        -i 'steps=50' \
+        -i 'width=768' \
+        -i 'height=768' \
+        -i 'prompt="a photo of an astronaut riding a horse on mars"' \
+        -i 'lora_scale=7.5' \
+        -i 'num_images=1' \
+        -i 'guidance_scale=7.5'
+
+`Note`: lora weights were manually downloaded from s3 and copied locally before building the docker images

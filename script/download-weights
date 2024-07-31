@@ -2,26 +2,25 @@
 
 import os
 import shutil
-from diffusers import StableDiffusionPipeline
-from diffusers.pipelines.stable_diffusion.safety_checker import (
-    StableDiffusionSafetyChecker,
-)
+import sys
+import torch
 
+from diffusers import StableDiffusionXLPipeline, DDPMScheduler
 
-MODEL_ID = "stabilityai/stable-diffusion-2-1"
-MODEL_CACHE = "diffusers-cache"
-SAFETY_MODEL_ID = "CompVis/stable-diffusion-safety-checker"
+# append project directory to path so predict.py can be imported
+sys.path.append('.')
+
+from predict import MODEL_CACHE, MODEL_ID, LOCAL_DIR
 
 if os.path.exists(MODEL_CACHE):
     shutil.rmtree(MODEL_CACHE)
 os.makedirs(MODEL_CACHE, exist_ok=True)
 
-saftey_checker = StableDiffusionSafetyChecker.from_pretrained(
-    SAFETY_MODEL_ID,
-    cache_dir=MODEL_CACHE,
-)
-
-pipe = StableDiffusionPipeline.from_pretrained(
+pipe = StableDiffusionXLPipeline.from_pretrained(
     MODEL_ID,
     cache_dir=MODEL_CACHE,
+    torch_dtype=torch.float16, 
+    use_safetensors=True
 )
+pipe.scheduler = DDPMScheduler.from_config(pipe.scheduler.config)
+pipe.load_lora_weights(LOCAL_DIR)
