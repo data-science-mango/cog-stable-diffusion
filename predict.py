@@ -29,17 +29,18 @@ class Predictor(BasePredictor):
             returned_embeddings_type=ReturnedEmbeddingsType.PENULTIMATE_HIDDEN_STATES_NON_NORMALIZED,
             requires_pooled=[False, True],
         )
+        self.pipe.load_lora_weights(LOCAL_DIR)
 
     @torch.inference_mode()
     def predict(
         self,
         prompt: str = Input(
             description="Input prompt",
-            default="a photo of an astronaut riding a horse on mars",
+            default="Low Angle photo, Full body, open++ arms pose, teenage++ girl++ model++, wearing long dress with crochet detail designed by MNGFSHN and cotton voile with a tie-dye print in warm tones,from fuchsia to orange, beautiful++eyes++ freckles++ natural++ skin",
         ),
         negative_prompt: str = Input(
             description="Specify things to not see in the output",
-            default="Double nose",
+            default="Double face, inaccurate noose, bad anatomy,inaccurate teeth, extra large legs,bad composition, inaccurate eyes, extra digit, canvas frame, cartoon, 3d, disfigured, bad art, deformed,extra limbs,close up,b&w, wierd colors, blurry, duplicate, morbid, mutilated, [out of frame], extra fingers, mutated hands, poorly drawn hands, poorly drawn face, mutation, deformed, ugly, blurry, bad anatomy, bad proportions, extra limbs, cloned face, disfigured, out of frame, ugly, extra limbs",
         ),
         width: int = Input(
             description="Width of output image. Maximum size is 1024x768 or 768x1024 because of memory limits",
@@ -61,10 +62,10 @@ class Predictor(BasePredictor):
             description="Number of denoising steps", ge=1, le=500, default=50
         ),
         lora_scale: float = Input(
-            description="Scale for Lora", ge=1, le=20, default=7.5
+            description="Scale for Lora", ge=0, le=1, default=0.7
         ),
         guidance_scale: float = Input(
-            description="Scale for classifier-free guidance", ge=1, le=20, default=7.5
+            description="Scale for classifier-free guidance", ge=1, le=20, default=4.5
         ),
         seed: int = Input(
             description="Random seed. Leave blank to randomize the seed", default=42
@@ -75,7 +76,7 @@ class Predictor(BasePredictor):
             seed = int.from_bytes(os.urandom(2), "big")
         print(f"Using seed: {seed}")
 
-        if width * height > 786432:
+        if width * height > 1048576:
             raise ValueError(
                 "Maximum size is 1024x768 or 768x1024 pixels, because of memory limits. Please select a lower width or height."
             )
